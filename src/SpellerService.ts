@@ -21,7 +21,7 @@ const DEFAULT_ENCODING = 'utf-8';
 const MULTIPART_FIELD_NAME = 'textFile';
 const supportedMimeTypes = ['text/plain'];
 
-export default class Speller {
+export default class SpellerService {
     private readonly app = express();
 
     private readonly textDecoder = new TextDecoder(DEFAULT_ENCODING);

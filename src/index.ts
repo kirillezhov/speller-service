@@ -1,9 +1,9 @@
 import host from 'ip';
 
 import './LoggingInitialization';
-import Speller from './Speller';
+import SpellerService from './SpellerService';
 
-const speller = new Speller();
+const speller = new SpellerService();
 const port = 5000;
 const address = host.address();
 
