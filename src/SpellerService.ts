@@ -26,35 +26,14 @@ export default class SpellerService {
 
     private readonly textDecoder = new TextDecoder(DEFAULT_ENCODING);
 
+    private readonly logger = getLogger('speller');
+
     private readonly multerUploadMiddleware = this.generateMulterUploadMiddleware(
         multer().single(MULTIPART_FIELD_NAME),
     );
 
-    private readonly logger = getLogger('speller');
-
     constructor() {
-        this.app.post('/check', this.multerUploadMiddleware, async (request, response) => {
-            if (!includes(supportedMimeTypes, request.file.mimetype)) {
-                return response
-                    .status(StatusCodes.UNSUPPORTED_MEDIA_TYPE)
-                    .send(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
-            }
-
-            try {
-                const sourceText = this.textDecoder.decode(request.file.buffer);
-                const resultText = await this.checkTextAsync(sourceText);
-
-                this.logger.debug('Result: ', resultText);
-
-                return response.sendStatus(StatusCodes.OK);
-            } catch (error) {
-                this.logger.error(error);
-
-                return response
-                    .status(StatusCodes.INTERNAL_SERVER_ERROR)
-                    .send(error.message);
-            }
-        });
+        this.app.post('/check', this.multerUploadMiddleware, this.handleCheckPost);
     }
 
     async checkTextAsync(text: string): Promise<string> {
@@ -97,6 +76,29 @@ export default class SpellerService {
                 return next();
             },
         );
+    }
+
+    private handleCheckPost = async (request: Request, response: Response): Promise<Response> => {
+        if (!includes(supportedMimeTypes, request.file.mimetype)) {
+            return response
+                .status(StatusCodes.UNSUPPORTED_MEDIA_TYPE)
+                .send(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
+        }
+
+        try {
+            const sourceText = this.textDecoder.decode(request.file.buffer);
+            const resultText = await this.checkTextAsync(sourceText);
+
+            this.logger.debug('Result: ', resultText);
+
+            return response.sendStatus(StatusCodes.OK);
+        } catch (error) {
+            this.logger.error(error);
+
+            return response
+                .status(StatusCodes.INTERNAL_SERVER_ERROR)
+                .send(error.message);
+        }
     }
 
     run(port: number, address: string): http.Server {
