@@ -26,6 +26,8 @@ export default class SpellerService {
 
     private readonly textDecoder = new TextDecoder(DEFAULT_ENCODING);
 
+    private readonly textEncoder = new TextEncoder();
+
     private readonly logger = getLogger('speller');
 
     private readonly multerUploadMiddleware = this.generateMulterUploadMiddleware(
@@ -88,10 +90,13 @@ export default class SpellerService {
         try {
             const sourceText = this.textDecoder.decode(request.file.buffer);
             const resultText = await this.checkTextAsync(sourceText);
+            const newBuffer = Buffer.from(this.textEncoder.encode(resultText));
 
-            this.logger.debug('Result: ', resultText);
+            response.contentType(request.file.mimetype);
 
-            return response.sendStatus(StatusCodes.OK);
+            return response
+                .status(StatusCodes.OK)
+                .send(newBuffer);
         } catch (error) {
             this.logger.error(error);
 
