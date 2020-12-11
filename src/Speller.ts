@@ -1,4 +1,9 @@
-import express, { Express } from 'express';
+import express, {
+    Request,
+    Response,
+    NextFunction,
+    RequestHandler,
+} from 'express';
 import http from 'http';
 import multer from 'multer';
 import { getLogger } from 'log4js';
@@ -10,7 +15,6 @@ import {
     isNil,
     replace,
 } from 'lodash';
-
 import { checkText } from 'yandex-speller';
 
 const DEFAULT_ENCODING = 'utf-8';
@@ -18,20 +22,20 @@ const MULTIPART_FIELD_NAME = 'textFile';
 const supportedMimeTypes = ['text/plain'];
 
 export default class Speller {
-    private readonly app: Express;
+    private readonly app = express();
 
     private readonly textDecoder = new TextDecoder(DEFAULT_ENCODING);
 
-    private readonly multerRequestHandler = multer().single(MULTIPART_FIELD_NAME);
+    private readonly multerUploadMiddleware = this.generateMulterUploadMiddleware(
+        multer().single(MULTIPART_FIELD_NAME),
+    );
 
     private readonly logger = getLogger('speller');
 
     constructor() {
-        this.app = express();
-
-        this.app.post('/check', this.multerRequestHandler, async (request, response) => {
+        this.app.post('/check', this.multerUploadMiddleware, async (request, response) => {
             if (!includes(supportedMimeTypes, request.file.mimetype)) {
-                response
+                return response
                     .status(StatusCodes.UNSUPPORTED_MEDIA_TYPE)
                     .send(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
             }
@@ -42,11 +46,11 @@ export default class Speller {
 
                 this.logger.debug('Result: ', resultText);
 
-                response.sendStatus(StatusCodes.OK);
+                return response.sendStatus(StatusCodes.OK);
             } catch (error) {
                 this.logger.error(error);
 
-                response
+                return response
                     .status(StatusCodes.INTERNAL_SERVER_ERROR)
                     .send(error.message);
             }
@@ -74,6 +78,25 @@ export default class Speller {
 
             resolve(resultText);
         }));
+    }
+
+    private generateMulterUploadMiddleware(multerUploadFunction: RequestHandler): RequestHandler {
+        return (request: Request, response: Response, next: NextFunction) => multerUploadFunction(
+            request,
+            response,
+            // @ts-expect-error
+            (error: Error) => {
+                if (!isNil(error)) {
+                    this.logger.error(error);
+
+                    return response
+                        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+                        .send(error.message);
+                }
+
+                return next();
+            },
+        );
     }
 
     run(port: number, address: string): http.Server {
