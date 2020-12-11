@@ -15,7 +15,9 @@ import {
     isNil,
     replace,
 } from 'lodash';
-import { checkText } from 'yandex-speller';
+import { Result } from 'yandex-speller';
+
+import checkTextAsync from './checkTextAsync';
 
 const DEFAULT_ENCODING = 'utf-8';
 const MULTIPART_FIELD_NAME = 'textFile';
@@ -38,29 +40,6 @@ export default class SpellerService {
         this.app.post('/check', this.multerUploadMiddleware, this.handleCheckPost);
     }
 
-    async checkTextAsync(text: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => checkText(text, (error, body) => {
-            let resultText = text;
-
-            if (!isNil(error)) {
-                reject(error);
-            }
-
-            forEach(body, (result) => {
-                const { word, s } = result;
-                const priorityString = head(s);
-
-                if (isNil(priorityString)) {
-                    return;
-                }
-
-                resultText = replace(resultText, word, priorityString);
-            });
-
-            resolve(resultText);
-        }));
-    }
-
     private generateMulterUploadMiddleware(multerUploadFunction: RequestHandler): RequestHandler {
         return (request: Request, response: Response, next: NextFunction) => multerUploadFunction(
             request,
@@ -80,6 +59,23 @@ export default class SpellerService {
         );
     }
 
+    private parseArrayResult(array: Array<Result>, sourceText: string): string {
+        let resultText = sourceText;
+
+        forEach(array, (result) => {
+            const { word, s } = result;
+            const priorityString = head(s);
+
+            if (isNil(priorityString)) {
+                return;
+            }
+
+            resultText = replace(resultText, word, priorityString);
+        });
+
+        return resultText;
+    }
+
     private handleCheckPost = async (request: Request, response: Response): Promise<Response> => {
         if (!includes(supportedMimeTypes, request.file.mimetype)) {
             return response
@@ -89,7 +85,8 @@ export default class SpellerService {
 
         try {
             const sourceText = this.textDecoder.decode(request.file.buffer);
-            const resultText = await this.checkTextAsync(sourceText);
+            const resultArray = await checkTextAsync(sourceText);
+            const resultText = this.parseArrayResult(resultArray, sourceText);
             const newBuffer = Buffer.from(this.textEncoder.encode(resultText));
 
             response.contentType(request.file.mimetype);
