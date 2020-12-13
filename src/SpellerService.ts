@@ -19,21 +19,23 @@ import { Result } from 'yandex-speller';
 
 import checkTextAsync from './checkTextAsync';
 
-const DEFAULT_ENCODING = 'utf-8';
-const MULTIPART_FIELD_NAME = 'textFile';
-const supportedMimeTypes = ['text/plain'];
-
 export default class SpellerService {
+    static readonly defaultEncoding = 'utf-8';
+
+    static readonly multiPartFieldName = 'textFile';
+
+    static readonly supportedMimeTypes = ['text/plain'];
+
     private readonly app = express();
 
-    private readonly textDecoder = new TextDecoder(DEFAULT_ENCODING);
+    private readonly textDecoder = new TextDecoder(SpellerService.defaultEncoding);
 
     private readonly textEncoder = new TextEncoder();
 
     private readonly logger = getLogger('speller');
 
     private readonly multerUploadMiddleware = this.generateMulterUploadMiddleware(
-        multer().single(MULTIPART_FIELD_NAME),
+        multer().single(SpellerService.multiPartFieldName),
     );
 
     constructor() {
@@ -77,7 +79,7 @@ export default class SpellerService {
     }
 
     private handleCheckPost = async (request: Request, response: Response): Promise<Response> => {
-        if (!includes(supportedMimeTypes, request.file.mimetype)) {
+        if (!includes(SpellerService.supportedMimeTypes, request.file.mimetype)) {
             return response
                 .status(StatusCodes.UNSUPPORTED_MEDIA_TYPE)
                 .send(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
