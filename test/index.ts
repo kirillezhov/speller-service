@@ -24,15 +24,19 @@ describe('Integration test', () => {
                 });
         });
 
-        it('should return multer error', (done) => {
+        it('should return an error if a wrong field has been used', (done) => {
             chai.request(server)
                 .post('/check')
                 .attach('textFile2', './test/data/text.txt')
                 .end((error, response) => {
                     response.status.should.be.equal(StatusCodes.INTERNAL_SERVER_ERROR);
                     response.text.should.be.equal('Unexpected field');
-                });
 
+                    done();
+                });
+        });
+
+        it('should return an error for sending several files', (done) => {
             chai.request(server)
                 .post('/check')
                 .attach('textFile2', './test/data/text.txt')
@@ -45,13 +49,49 @@ describe('Integration test', () => {
                 });
         });
 
-        it('should return error for sending unsupported file', (done) => {
+        it('should return an error for sending unsupported file', (done) => {
             chai.request(server)
                 .post('/check')
                 .attach('textFile', './test/data/text.docx')
                 .end((error, response) => {
                     response.status.should.be.equal(StatusCodes.UNSUPPORTED_MEDIA_TYPE);
                     response.text.should.be.equal(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
+
+                    done();
+                });
+        });
+
+        it('should return an error for sending empty file', (done) => {
+            chai.request(server)
+                .post('/check')
+                .attach('textFile', './test/data/empty.txt')
+                .end((error, response) => {
+                    response.status.should.be.equal(StatusCodes.BAD_REQUEST);
+                    response.text.should.be.equal('File content is empty');
+
+                    done();
+                });
+        });
+
+        it('should return an error for sending file with invalid encoding', (done) => {
+            chai.request(server)
+                .post('/check')
+                .attach('textFile', './test/data/invalid_encoding.txt')
+                .end((error, response) => {
+                    response.status.should.be.equal(StatusCodes.BAD_REQUEST);
+                    response.text.should.be.equal('Unsupported encoding: windows-1251');
+
+                    done();
+                });
+        });
+
+        it('should return an error for sending file with unsupported language', (done) => {
+            chai.request(server)
+                .post('/check')
+                .attach('textFile', './test/data/unsupported_language.txt')
+                .end((error, response) => {
+                    response.status.should.be.equal(StatusCodes.BAD_REQUEST);
+                    response.text.should.be.equal('Unsupported encoding: ISO-8859-1');
 
                     done();
                 });

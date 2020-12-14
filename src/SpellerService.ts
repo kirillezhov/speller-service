@@ -4,6 +4,7 @@ import express, {
     NextFunction,
     RequestHandler,
 } from 'express';
+import detectCharacterEncoding from 'detect-character-encoding';
 import http from 'http';
 import multer from 'multer';
 import { getLogger } from 'log4js';
@@ -14,6 +15,7 @@ import {
     includes,
     isNil,
     replace,
+    toLower,
 } from 'lodash';
 import { Result, Settings } from 'yandex-speller';
 
@@ -65,7 +67,7 @@ export default class SpellerService {
         );
     }
 
-    private fixTypos(typos: Array<Result>, sourceText: string): string {
+    private fixTypos(typos: ReadonlyArray<Result>, sourceText: Readonly<string>): string {
         let resultText = sourceText;
 
         forEach(typos, (result) => {
@@ -78,6 +80,7 @@ export default class SpellerService {
                 return;
             }
 
+            // NOTE(KE): can be removed with StringBuilder (https://www.npmjs.com/package/string-builder) instead replace if needed
             resultText = replace(resultText, word, mostRelevantCorrectWord);
         });
 
@@ -91,18 +94,42 @@ export default class SpellerService {
                 .send(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
         }
 
-        const sourceText = this.textDecoder.decode(request.file.buffer);
+        if (request.file.size === 0) {
+            return response
+                .status(StatusCodes.BAD_REQUEST)
+                .send('File content is empty');
+        }
+
+        const resultDetect = detectCharacterEncoding(request.file.buffer);
+
+        if (isNil(resultDetect)) {
+            return response
+                .status(StatusCodes.BAD_REQUEST)
+                .send('File encoding not detected');
+        }
+
+        const { encoding } = resultDetect;
+
+        if (toLower(encoding) !== SpellerService.defaultEncoding) {
+            return response
+                .status(StatusCodes.BAD_REQUEST)
+                .send(`Unsupported encoding: ${encoding}`);
+        }
+
+        let sourceText: string | undefined;
 
         try {
-            const resultArray = await checkTextAsync(sourceText, this.settings);
-            const resultText = this.fixTypos(resultArray, sourceText);
-            const newBuffer = Buffer.from(this.textEncoder.encode(resultText));
+            sourceText = this.textDecoder.decode(request.file.buffer);
+
+            const typos = await checkTextAsync(sourceText, this.settings);
+            const resultText = this.fixTypos(typos, sourceText);
+            const responseBuffer = Buffer.from(this.textEncoder.encode(resultText));
 
             response.contentType(request.file.mimetype);
 
             return response
                 .status(StatusCodes.OK)
-                .send(newBuffer);
+                .send(responseBuffer);
         } catch (error) {
             this.logger.error(`Endpoint: /check, Source text: ${sourceText}, Error: `, error);
 
