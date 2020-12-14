@@ -73,6 +73,8 @@ export default class SpellerService {
             const mostRelevantCorrectWord = head(s);
 
             if (isNil(mostRelevantCorrectWord)) {
+                this.logger.error(`Correction not found for word [${word}]`);
+
                 return;
             }
 
