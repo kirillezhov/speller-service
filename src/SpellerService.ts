@@ -15,7 +15,7 @@ import {
     isNil,
     replace,
 } from 'lodash';
-import { Result } from 'yandex-speller';
+import { Result, Settings } from 'yandex-speller';
 
 import checkTextAsync from './checkTextAsync';
 
@@ -33,6 +33,10 @@ export default class SpellerService {
     private readonly textEncoder = new TextEncoder();
 
     private readonly logger = getLogger('speller');
+
+    private readonly settings: Settings = {
+        timeout: 3000,
+    }
 
     private readonly multerUploadMiddleware = this.generateMulterUploadMiddleware(
         multer().single(SpellerService.multiPartFieldName),
@@ -88,7 +92,7 @@ export default class SpellerService {
         const sourceText = this.textDecoder.decode(request.file.buffer);
 
         try {
-            const resultArray = await checkTextAsync(sourceText);
+            const resultArray = await checkTextAsync(sourceText, this.settings);
             const resultText = this.parseArrayResult(resultArray, sourceText);
             const newBuffer = Buffer.from(this.textEncoder.encode(resultText));
 

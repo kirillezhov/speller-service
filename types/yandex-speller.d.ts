@@ -3,79 +3,79 @@ declare module 'yandex-speller' {
         /**
          * Ignore words written in capital letters
          */
-        ignoreUppercase: boolean;
+        ignoreUppercase?: boolean;
 
         /**
          * Ignore words with numbers, such as "avp17h4534"
          */
-        ignoreDigits: boolean;
+        ignoreDigits?: boolean;
 
         /**
          * Ignore Internet addresses, email addresses and filenames
          */
-        ignoreUrls: boolean;
+        ignoreUrls?: boolean;
 
         /**
          * Highlight repetitions of words, consecutive. For example, "I flew to to to Cyprus"
          */
-        findRepeatWords: boolean;
+        findRepeatWords?: boolean;
 
         /**
          * Ignore words, written in Latin, for example, "madrid"
          */
-        ignoreLatin: boolean;
+        ignoreLatin?: boolean;
 
         /**
          * Just check the text, without giving options to replace
          */
-        noSuggest: boolean;
+        noSuggest?: boolean;
 
         /**
          * Celebrate words, written in Latin, as erroneous
          */
-        flagLatin: boolean;
+        flagLatin?: boolean;
 
         /**
          * Do not use a dictionary environment (context) during the scan.
          * This is useful in cases where the service is transmitted to the input
          * of a list of individual words
          */
-        byWords: boolean;
+        byWords?: boolean;
 
         /**
          * Ignore the incorrect use of UPPERCASE / lowercase letters,
          * for example, in the word "moscow"
          */
-        ignoreCapitalization: boolean;
+        ignoreCapitalization?: boolean;
 
         /**
          * Ignore Roman numerals ("I, II, III, ...")
          */
-        ignoreRomanNumerals: boolean;
+        ignoreRomanNumerals?: boolean;
     }
 
     export interface Settings {
         /**
          * Text format: plain or html
          */
-        format: 'plain' | 'html';
+        format?: 'plain' | 'html';
 
         /**
          * Language: en, ru or uk
          */
-        lang: string | Array<string>;
+        lang?: string | Array<string>;
 
         /**
          * Request repeat count in case internet connection issues
          */
-        requestLimit: number;
+        requestLimit?: number;
 
         /**
          * Timeout between request repeats in milliseconds
          */
-        timeout: number;
+        timeout?: number;
 
-        options: Options;
+        options?: Options;
     }
 
     export interface Result {
