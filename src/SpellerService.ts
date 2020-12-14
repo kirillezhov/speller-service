@@ -49,7 +49,7 @@ export default class SpellerService {
             // @ts-expect-error
             (error: Error) => {
                 if (!isNil(error)) {
-                    this.logger.error(error);
+                    this.logger.error('Endpoint: /POST check, File upload error: ', error);
 
                     return response
                         .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -85,8 +85,9 @@ export default class SpellerService {
                 .send(ReasonPhrases.UNSUPPORTED_MEDIA_TYPE);
         }
 
+        const sourceText = this.textDecoder.decode(request.file.buffer);
+
         try {
-            const sourceText = this.textDecoder.decode(request.file.buffer);
             const resultArray = await checkTextAsync(sourceText);
             const resultText = this.parseArrayResult(resultArray, sourceText);
             const newBuffer = Buffer.from(this.textEncoder.encode(resultText));
@@ -97,7 +98,7 @@ export default class SpellerService {
                 .status(StatusCodes.OK)
                 .send(newBuffer);
         } catch (error) {
-            this.logger.error(error);
+            this.logger.error(`Endpoint: /POST check, Source text: ${sourceText}, Error: `, error);
 
             return response
                 .status(StatusCodes.INTERNAL_SERVER_ERROR)
