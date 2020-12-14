@@ -1,10 +1,9 @@
 {
   "name": "speller-service",
   "version": "1.0.0",
-  "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist/*.js && tsc",
-    "start": "node .",
+    "start": "node dist/index.js",
     "lint": "npx eslint . --ext ts --ext tsx --max-warnings 0 --cache",
     "lint:fix": "npx eslint . --ext ts --ext tsx --fix --max-warnings 0 --cache",
     "test": "mocha --require ts-node/register test/*.ts"
