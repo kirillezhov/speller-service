@@ -85,18 +85,6 @@ describe('Integration test', () => {
                 });
         });
 
-        it('should return an error for sending file with unsupported language', (done) => {
-            chai.request(server)
-                .post('/check')
-                .attach('textFile', './test/data/unsupported_language.txt')
-                .end((error, response) => {
-                    response.status.should.be.equal(StatusCodes.BAD_REQUEST);
-                    response.text.should.be.equal('Unsupported encoding: ISO-8859-1');
-
-                    done();
-                });
-        });
-
         server.close();
     });
 });
