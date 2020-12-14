@@ -116,7 +116,7 @@ export default class SpellerService {
                 .send(`Unsupported encoding: ${encoding}`);
         }
 
-        let sourceText: string | undefined;
+        let sourceText;
 
         try {
             sourceText = this.textDecoder.decode(request.file.buffer);
