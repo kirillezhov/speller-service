@@ -49,5 +49,5 @@ npm run start
 # Run the tests
 
 ```
-npm run test
+npm test
 ```
