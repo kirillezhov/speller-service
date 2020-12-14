@@ -80,7 +80,7 @@ export default class SpellerService {
                 return;
             }
 
-            // NOTE(KE): can be removed with StringBuilder (https://www.npmjs.com/package/string-builder) instead replace if needed
+            // NOTE(KE): can be improved with StringBuilder (https://www.npmjs.com/package/string-builder) instead of replace() if needed
             resultText = replace(resultText, word, mostRelevantCorrectWord);
         });
 
