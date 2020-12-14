@@ -9,8 +9,7 @@ if (!fs.existsSync(logDirectory)) {
 
 configure({
     appenders: {
-        file: { type: 'fileSync', layout: { type: 'basic' }, filename: `${logDirectory}/speller.log` },
         console: { type: 'console' },
     },
-    categories: { default: { appenders: ['file', 'console'], level: 'debug' } },
+    categories: { default: { appenders: ['console'], level: 'debug' } },
 });
