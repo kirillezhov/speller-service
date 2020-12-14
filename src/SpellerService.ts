@@ -43,7 +43,7 @@ export default class SpellerService {
     );
 
     constructor() {
-        this.app.post('/check', this.multerUploadMiddleware, this.handleCheckPost);
+        this.app.post('/check', this.multerUploadMiddleware, this.handleCheck);
     }
 
     private generateMulterUploadMiddleware(multerUploadFunction: RequestHandler): RequestHandler {
@@ -53,7 +53,7 @@ export default class SpellerService {
             // @ts-expect-error
             (error: Error) => {
                 if (!isNil(error)) {
-                    this.logger.error('Endpoint: /POST check, File upload error: ', error);
+                    this.logger.error('Endpoint: /check, File upload error: ', error);
 
                     return response
                         .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -82,7 +82,7 @@ export default class SpellerService {
         return resultText;
     }
 
-    private handleCheckPost = async (request: Request, response: Response): Promise<Response> => {
+    private handleCheck = async (request: Request, response: Response): Promise<Response> => {
         if (!includes(SpellerService.supportedMimeTypes, request.file.mimetype)) {
             return response
                 .status(StatusCodes.UNSUPPORTED_MEDIA_TYPE)
@@ -102,7 +102,7 @@ export default class SpellerService {
                 .status(StatusCodes.OK)
                 .send(newBuffer);
         } catch (error) {
-            this.logger.error(`Endpoint: /POST check, Source text: ${sourceText}, Error: `, error);
+            this.logger.error(`Endpoint: /check, Source text: ${sourceText}, Error: `, error);
 
             return response
                 .status(StatusCodes.INTERNAL_SERVER_ERROR)
