@@ -1,11 +1,4 @@
 import { configure } from 'log4js';
-import fs from 'fs';
-
-const logDirectory = 'dist/logs';
-
-if (!fs.existsSync(logDirectory)) {
-    fs.mkdirSync(logDirectory);
-}
 
 configure({
     appenders: {
