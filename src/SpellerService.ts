@@ -65,18 +65,18 @@ export default class SpellerService {
         );
     }
 
-    private parseArrayResult(array: Array<Result>, sourceText: string): string {
+    private fixTypos(typos: Array<Result>, sourceText: string): string {
         let resultText = sourceText;
 
-        forEach(array, (result) => {
+        forEach(typos, (result) => {
             const { word, s } = result;
-            const priorityString = head(s);
+            const mostRelevantCorrectWord = head(s);
 
-            if (isNil(priorityString)) {
+            if (isNil(mostRelevantCorrectWord)) {
                 return;
             }
 
-            resultText = replace(resultText, word, priorityString);
+            resultText = replace(resultText, word, mostRelevantCorrectWord);
         });
 
         return resultText;
@@ -93,7 +93,7 @@ export default class SpellerService {
 
         try {
             const resultArray = await checkTextAsync(sourceText, this.settings);
-            const resultText = this.parseArrayResult(resultArray, sourceText);
+            const resultText = this.fixTypos(resultArray, sourceText);
             const newBuffer = Buffer.from(this.textEncoder.encode(resultText));
 
             response.contentType(request.file.mimetype);
